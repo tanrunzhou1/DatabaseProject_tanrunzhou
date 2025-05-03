@@ -113,7 +113,6 @@ class LoginApp:
                                   command =lambda:self.logout(admin_window))
         logout_button.pack(pady=20)
 
-
     def search_info(self, window):      #查询信息主窗口
         search_info_window = tk.Toplevel(window)
         window.withdraw()
@@ -230,11 +229,101 @@ class LoginApp:
         tk.Button(search_info_window, text="Student Info", font=("Arial", 12), width=20,
                   command=lambda:select_student_info(search_info_window)).pack(pady=10)
 
-        def select_student_score_info():        #查询学生成绩按钮
-            print("22")
+        def select_student_score_info(window):        #查询学生成绩按钮
+            student_score_window = tk.Toplevel(window)
+            window.withdraw()
+            student_score_window.title("Students score")
+            student_score_window.geometry("800x600")
+            student_score_window.resizable(width=False, height=False)
+
+
+            tk.Label(student_score_window ,text="Student ID or Name:", font=("Arial", 12)).grid(
+                row=0, column=0, pady=5
+            )
+            tk.Label(student_score_window, text="Course ID or Name:", font=("Arial", 12)).grid(
+                row=1, column=0, pady=5
+            )
+            student_input_entry = tk.Entry(student_score_window, font=("Arial", 12),width=40)
+            student_input_entry.grid(row=0, column=1, padx=30,pady=20,sticky="nsew")
+            course_input_entry = tk.Entry(student_score_window, font=("Arial", 12),width=40)
+            course_input_entry.grid(row=1, column=1, padx=30,pady=20,sticky="nsew")
+
+            table_frame = tk.Frame(student_score_window,bg="red")
+            table_frame.grid(row=3,column=0,columnspan=4,padx=20,pady=20,sticky="nsew")
+            columns = ("StudentID", "StudentName", "CourseID", "CourseName","Score")
+            student_tree = ttk.Treeview(table_frame, columns=columns, show="headings")
+            student_tree.grid(row=0, column=0,sticky="nsew")
+            # scrollbar = ttk.Scrollbar(table_frame, orient="vertical", command=student_tree.yview)
+            # scrollbar.grid(row=0, column=1, sticky="ns")
+            # student_tree.configure(yscrollcommand=scrollbar.set)
+
+            student_tree["show"]="headings"
+            for col in columns:
+                student_tree.heading(col, text=col)
+                student_tree.column(col, width=100)
+            student_tree.column("StudentID", width=100)
+            student_tree.column("StudentName", width=100)
+            student_tree.column("CourseID", width=100)
+            student_tree.column("CourseName", width=50)
+            student_tree.column("Score", width=70)
+
+            student_score_window.grid_rowconfigure(3, weight=1)
+            student_score_window.grid_columnconfigure(0, weight=1)
+            table_frame.grid_rowconfigure(0, weight=1)
+            table_frame.grid_columnconfigure(0, weight=1)
+
+            def query_scores():
+                student_input = student_input_entry.get().strip()
+                course_input = course_input_entry.get().strip()
+                for item in student_tree.get_children():
+                    student_tree.delete(item)
+
+                connection = Connection(**DB_CONFIG)
+                cursor = connection.cursor()
+                try:
+                    query="""
+                    Select s.StudentID,s.StudentName,c.CourseID,c.CourseName,cs.Score
+                    from coursechoosing cs
+                    join students s on cs.StudentID = s.StudentID
+                    join courses c on cs.CourseID = c.CourseID
+                    """
+
+                    conditions = []
+                    params = []
+                    if student_input:
+                        conditions.append("(cs.StudentID = %s OR s.StudentName LIKE %s)")
+                        params.extend([student_input, f"%{student_input}%"])
+
+                    if course_input:
+                        conditions.append("(cs.CourseID = %s OR c.CourseName LIKE %s)")
+                        params.extend([course_input, f"%{course_input}%"])
+
+                    if conditions:
+                        query += " WHERE " + " AND ".join(conditions)
+                    query+="order by s.StudentID,c.CourseID"
+                    cursor.execute(query,params)
+                    result = cursor.fetchall()
+                    if not result:
+                        return
+                    for row in result:
+                        student_tree.insert("", "end", values=row)
+                except Exception as e:
+                    messagebox.showerror("error",str(e))
+                finally:
+                    cursor.close()
+                    connection.close()
+
+            query_button = tk.Button(student_score_window, text="Query", width=15, command=query_scores)
+            query_button.grid(row=5, column=0, pady=5, padx=10)
+
+            def go_back():
+                student_score_window.destroy()
+                window.deiconify()
+            back_button = tk.Button(student_score_window, text="Back", width=15, command=go_back)
+            back_button.grid(row=5, column=1, pady=5, padx=10)
 
         tk.Button(search_info_window,text="Student Score Info",font=("Arial", 12), width=20,
-                  command=select_student_score_info).pack(pady=10)
+                  command=lambda:select_student_score_info(search_info_window)).pack(pady=10)
 
         def go_back():
             search_info_window.destroy()
@@ -291,10 +380,6 @@ class LoginApp:
 
         tk.Button(change_password_window, text="changePassword",font=("Arial", 12),width=20,command=update).pack(pady=10)
         tk.Button(change_password_window,text = "cancel",font = ("Arial", 12),width=20,command = cancel_destroy).pack(pady=10)
-
-
-
-
 
 
 
