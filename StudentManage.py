@@ -121,14 +121,15 @@ class LoginApp:
         search_info_window.resizable(False, False)
         tk.Label(search_info_window,text="Search for Information",font=("Arial", 12)).pack(pady=5)
 
-        def select_student_info(window):           #查询学生信息窗口
+        # 查询学生信息窗口
+        def select_student_info(window):
             student_info_window = tk.Toplevel(window)
             window.withdraw()
             student_info_window.title("studentInfo")
             student_info_window.geometry("800x600")
             student_info_window.resizable(False, False)
             tk.Label(student_info_window,text="Student Information",font=("Arial", 12)).pack(pady=5)
-            tk.Label(student_info_window,text="enter student id or student name",font=("Arial", 8)).pack(pady=5)
+            tk.Label(student_info_window, fg="red",text="enter student id or student name",font=("Arial", 8)).pack(pady=5)
 
             student_id_entry = tk.Entry(student_info_window, font=("Arial", 12), width=30)
             student_id_entry.pack(pady=5)
@@ -229,7 +230,8 @@ class LoginApp:
         tk.Button(search_info_window, text="Student Info", font=("Arial", 12), width=20,
                   command=lambda:select_student_info(search_info_window)).pack(pady=10)
 
-        def select_student_score_info(window):        #查询学生成绩按钮
+        # 查询学生成绩窗口
+        def select_student_score_info(window):
             student_score_window = tk.Toplevel(window)
             window.withdraw()
             student_score_window.title("Students score")
@@ -325,6 +327,29 @@ class LoginApp:
         tk.Button(search_info_window,text="Student Score Info",font=("Arial", 12), width=20,
                   command=lambda:select_student_score_info(search_info_window)).pack(pady=10)
 
+        def select_course_info(window):
+            course_window = tk.Toplevel(window)
+            window.withdraw()
+            course_window.title("Students score")
+            course_window.geometry("800x600")
+            course_window.resizable(width=False, height=False)
+            tk.Label(course_window, text="Course Information", font=("Arial", 12)).pack(pady=5)
+            tk.Label(course_window, fg="red", text="enter course id or course name", font=("Arial", 8)).pack(
+                pady=5)
+
+            student_id_entry = tk.Entry(course_window, font=("Arial", 12), width=30)
+            student_id_entry.pack(pady=5)
+
+            # 表格
+            columns = ("CourseID", "Name", "Teacher name", "Credit",
+                       "Grade", "Canceled Year")
+            student_tree = ttk.Treeview(course_window, columns=columns, show="headings")
+            student_tree.pack(fill="both", expand=True, padx=20, pady=10)
+
+        tk.Button(search_info_window,text="Course Info",font=("Arial", 12), width=20,
+                  command=lambda:select_course_info(search_info_window)).pack(pady=10)
+
+        #返回按钮
         def go_back():
             search_info_window.destroy()
             window.deiconify()
